@@ -1,0 +1,47 @@
+# dependencies (bun / npm)
+node_modules
+vendor
+
+# build outputs and archives
+out
+dist
+*.exe
+*.dll
+*.so
+*.dylib
+*.tgz
+*.zip
+
+# runtime and dynamic workspaces
+TogetherCodeOrchestratorServiceLayerMSC/Workspaces/
+Workspaces/
+
+# code coverage and test results
+coverage
+*.lcov
+test_results
+
+# logs
+logs
+*.log
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# dotenv environment variable files (preserve .env.example)
+.env
+.env.*
+!.env.example
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# IDE & editor configuration
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
