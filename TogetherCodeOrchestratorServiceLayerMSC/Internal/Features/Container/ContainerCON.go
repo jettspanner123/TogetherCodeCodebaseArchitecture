@@ -18,4 +18,6 @@ const (
 	STARTER_USER_TWO_JS = "// UserTwo Workspace\n// Write your JavaScript/TypeScript code below.\n\nfunction solution() {\n  console.log('Hello from UserTwo!');\n}\n\nsolution();\n"
 
 	STARTER_SHARED_NOTES = "# Shared Scratchpad & Notes\nUse this file to share algorithms, test cases, or problem statements with your peer.\n"
+
+	STARTER_VSCODE_SETTINGS = "{\n  \"files.autoSave\": \"afterDelay\",\n  \"files.autoSaveDelay\": 500,\n  \"workbench.startupEditor\": \"none\"\n}\n"
 )

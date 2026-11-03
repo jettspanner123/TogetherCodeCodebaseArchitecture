@@ -229,7 +229,9 @@ func (s *ContainerService) GetWorkspaceDirectory(roomCode string) (string, error
 func (s *ContainerService) scaffoldStarterFiles(roomWorkspace string) error {
 	dirs := []string{
 		filepath.Join(roomWorkspace, "UserOne"),
+		filepath.Join(roomWorkspace, "UserOne", ".vscode"),
 		filepath.Join(roomWorkspace, "UserTwo"),
+		filepath.Join(roomWorkspace, "UserTwo", ".vscode"),
 		filepath.Join(roomWorkspace, "shared"),
 	}
 
@@ -240,12 +242,14 @@ func (s *ContainerService) scaffoldStarterFiles(roomWorkspace string) error {
 	}
 
 	files := map[string]string{
-		filepath.Join(roomWorkspace, "README.md"):             STARTER_README_ROOT,
-		filepath.Join(roomWorkspace, "UserOne", "main.py"):    STARTER_USER_ONE_PY,
-		filepath.Join(roomWorkspace, "UserOne", "index.js"):   STARTER_USER_ONE_JS,
-		filepath.Join(roomWorkspace, "UserTwo", "main.py"):    STARTER_USER_TWO_PY,
-		filepath.Join(roomWorkspace, "UserTwo", "index.js"):   STARTER_USER_TWO_JS,
-		filepath.Join(roomWorkspace, "shared", "notes.txt"):   STARTER_SHARED_NOTES,
+		filepath.Join(roomWorkspace, "README.md"):                               STARTER_README_ROOT,
+		filepath.Join(roomWorkspace, "UserOne", "main.py"):                      STARTER_USER_ONE_PY,
+		filepath.Join(roomWorkspace, "UserOne", "index.js"):                     STARTER_USER_ONE_JS,
+		filepath.Join(roomWorkspace, "UserOne", ".vscode", "settings.json"):    STARTER_VSCODE_SETTINGS,
+		filepath.Join(roomWorkspace, "UserTwo", "main.py"):                      STARTER_USER_TWO_PY,
+		filepath.Join(roomWorkspace, "UserTwo", "index.js"):                     STARTER_USER_TWO_JS,
+		filepath.Join(roomWorkspace, "UserTwo", ".vscode", "settings.json"):    STARTER_VSCODE_SETTINGS,
+		filepath.Join(roomWorkspace, "shared", "notes.txt"):                     STARTER_SHARED_NOTES,
 	}
 
 	for filePath, content := range files {
