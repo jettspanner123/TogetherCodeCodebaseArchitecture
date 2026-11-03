@@ -1,5 +1,5 @@
 import ApplicationEndpointFactory from '@/Factories/ApplicationEndpointFactory';
-import { WebSocketMessageEnvelopeType, WebSocketEventType } from '@/Types/WebSocketMessageType';
+import { WebSocketMessageEnvelopeType } from '@/Types/WebSocketMessageType';
 import { WorkspaceRoleType } from '@/Types/RoomSessionType';
 
 type MessageListener = (data: WebSocketMessageEnvelopeType) => void;
@@ -12,12 +12,27 @@ export default class WorkspaceWebSocketService {
   private messageListeners: Set<MessageListener> = new Set();
   private statusListeners: Set<StatusListener> = new Set();
   private heartbeatTimer: number | null = null;
+  private roomCode: string = '';
+  private nickname: string = '';
+  private role: WorkspaceRoleType = 'UserTwo';
 
-  public connect(roomCode: string, token: string): void {
+  public connect(roomCode: string, token: string, nickname?: string, role?: WorkspaceRoleType): void {
     this.disconnect();
+    this.roomCode = roomCode;
+    this.nickname = nickname || '';
+    this.role = role || 'UserTwo';
 
     const baseUrl = ApplicationEndpointFactory.FormatWebSocketRoom(roomCode);
-    const wsUrl = `${baseUrl}?token=${encodeURIComponent(token)}`;
+    const params = new URLSearchParams();
+    params.set('token', token);
+    if (nickname) {
+      params.set('displayName', nickname);
+    }
+    if (role) {
+      params.set('role', role);
+    }
+
+    const wsUrl = `${baseUrl}?${params.toString()}`;
 
     try {
       this.socket = new WebSocket(wsUrl);
@@ -51,11 +66,25 @@ export default class WorkspaceWebSocketService {
   }
 
   public sendChatMessage(message: string): void {
-    this.sendEnvelope('CHAT', { message });
+    this.sendEnvelope({
+      type: 'CHAT',
+      roomCode: this.roomCode,
+      senderName: this.nickname,
+      senderRole: this.role,
+      payload: message,
+      timestamp: Date.now(),
+    });
   }
 
   public sendTypingPulse(role: WorkspaceRoleType, isTyping: boolean): void {
-    this.sendEnvelope('TYPING', { role, isTyping });
+    this.sendEnvelope({
+      type: 'TYPING',
+      roomCode: this.roomCode,
+      senderName: this.nickname,
+      senderRole: role || this.role,
+      isTyping,
+      timestamp: Date.now(),
+    });
   }
 
   public subscribeToMessages(listener: MessageListener): () => void {
@@ -76,9 +105,8 @@ export default class WorkspaceWebSocketService {
     }
   }
 
-  private sendEnvelope(type: WebSocketEventType, payload: Record<string, unknown>): void {
+  private sendEnvelope(envelope: WebSocketMessageEnvelopeType): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      const envelope: WebSocketMessageEnvelopeType = { type, payload };
       this.socket.send(JSON.stringify(envelope));
     }
   }
@@ -86,7 +114,14 @@ export default class WorkspaceWebSocketService {
   private startHeartbeat(): void {
     this.stopHeartbeat();
     this.heartbeatTimer = window.setInterval(() => {
-      this.sendEnvelope('PRESENCE', { status: 'heartbeat' });
+      this.sendEnvelope({
+        type: 'PRESENCE',
+        roomCode: this.roomCode,
+        senderName: this.nickname,
+        senderRole: this.role,
+        payload: 'heartbeat',
+        timestamp: Date.now(),
+      });
     }, 25000);
   }
 

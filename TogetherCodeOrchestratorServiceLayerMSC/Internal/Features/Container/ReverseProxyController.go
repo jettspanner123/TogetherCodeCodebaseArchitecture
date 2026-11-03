@@ -70,24 +70,22 @@ func (ctrl *ReverseProxyController) HandleProxy(c *gin.Context) {
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-	// Custom Director to rewrite request path for OpenVSCode
+	// Custom Director to ensure host and upgrade headers are forwarded to OpenVSCode
 	originalDirector := proxy.Director
 	proxy.Director = func(req *http.Request) {
 		originalDirector(req)
 		req.Host = targetURL.Host
 
-		// Strip the /ReverseProxy/Rooms/:Code prefix so OpenVSCode receives its expected root path
-		prefix := fmt.Sprintf("/ReverseProxy/Rooms/%s", code)
-		if strings.HasPrefix(req.URL.Path, prefix) {
-			req.URL.Path = strings.TrimPrefix(req.URL.Path, prefix)
-			if req.URL.Path == "" {
-				req.URL.Path = "/"
-			}
+		// OpenVSCode runs with --server-base-path /ReverseProxy/Rooms/:Code, so keep req.URL.Path intact.
+		// If requesting room root without trailing slash, normalize to /ReverseProxy/Rooms/:Code/
+		roomRoot := fmt.Sprintf("/ReverseProxy/Rooms/%s", code)
+		if req.URL.Path == roomRoot {
+			req.URL.Path = roomRoot + "/"
 		}
 
 		// Ensure WebSocket headers are correctly forwarded
-		if req.Header.Get("Upgrade") != "" {
-			req.Header.Set("Upgrade", req.Header.Get("Upgrade"))
+		if strings.EqualFold(req.Header.Get("Upgrade"), "websocket") {
+			req.Header.Set("Upgrade", "websocket")
 			req.Header.Set("Connection", "Upgrade")
 		}
 	}

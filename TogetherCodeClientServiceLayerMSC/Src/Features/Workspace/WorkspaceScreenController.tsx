@@ -11,7 +11,7 @@ import LobbyJoinRoomFormStaticComponent from '@/Features/Lobby/Components/Static
 import { useApplicationUserSessionStore } from '@/Stores/ApplicationUserSessionStore';
 import { RoomSessionType, WorkspaceRoleType } from '@/Types/RoomSessionType';
 import { WorkspaceChatMessage } from '@/Features/Workspace/Models/WorkspaceChatMessageModel';
-import { WebSocketMessageEnvelopeType, WebSocketChatPayloadType, WebSocketTypingPayloadType } from '@/Types/WebSocketMessageType';
+import { WebSocketMessageEnvelopeType } from '@/Types/WebSocketMessageType';
 import { JoinRoomFormData } from '@/Features/Lobby/Models/LobbyFormModel';
 
 import LobbyService from '@/Features/Lobby/Services/LobbyService';
@@ -78,29 +78,45 @@ export default function WorkspaceScreenController(): React.JSX.Element {
   useEffect(() => {
     if (!isAuthorized || !session.sessionToken) return;
 
-    WorkspaceWebSocketService.current.connect(roomCode, session.sessionToken);
+    WorkspaceWebSocketService.current.connect(roomCode, session.sessionToken, currentNickname, currentRole);
 
     const unsubscribeMessages = WorkspaceWebSocketService.current.subscribeToMessages(
       (envelope: WebSocketMessageEnvelopeType) => {
         if (envelope.type === 'CHAT') {
-          const payload = envelope.payload as WebSocketChatPayloadType;
-          const isSelf = payload.role === currentRole;
+          const senderRole = envelope.senderRole || 'UserTwo';
+          const senderName = envelope.senderName || 'Anonymous';
+          const messageText = envelope.payload || '';
+          const isSelf = senderRole === currentRole;
           const newMsg: WorkspaceChatMessage = {
             id: `${Date.now()}-${Math.random()}`,
-            role: payload.role,
-            nickname: payload.nickname,
-            message: payload.message,
-            timestamp: payload.timestamp ? FormatHelper.current.formatTimestamp(payload.timestamp) : FormatHelper.current.formatTimeShort(),
+            role: senderRole,
+            nickname: senderName,
+            message: messageText,
+            timestamp: envelope.timestamp
+              ? FormatHelper.current.formatTimestamp(new Date(envelope.timestamp).toISOString())
+              : FormatHelper.current.formatTimeShort(),
             isSelf,
           };
           setMessages((prev) => [...prev, newMsg]);
         } else if (envelope.type === 'TYPING') {
-          const payload = envelope.payload as WebSocketTypingPayloadType;
-          if (payload.role !== currentRole) {
-            setPartnerTyping(payload.isTyping);
+          if (envelope.senderRole !== currentRole) {
+            setPartnerTyping(Boolean(envelope.isTyping));
           }
         } else if (envelope.type === 'PRESENCE') {
           setPartnerOnline(true);
+          // If a peer joined, refresh room details so header badges update to peer nickname
+          if (envelope.senderRole && envelope.senderRole !== currentRole) {
+            LobbyService.current
+              .getRoomDetails(roomCode)
+              .then((data) => {
+                setRoomSession(data);
+              })
+              .catch(() => {});
+          }
+        } else if (envelope.type === 'DISCONNECT') {
+          if (envelope.senderRole !== currentRole) {
+            setPartnerOnline(false);
+          }
         }
       }
     );
@@ -118,7 +134,7 @@ export default function WorkspaceScreenController(): React.JSX.Element {
       unsubscribeStatus();
       WorkspaceWebSocketService.current.disconnect();
     };
-  }, [isAuthorized, roomCode, session.sessionToken, currentRole]);
+  }, [isAuthorized, roomCode, session.sessionToken, currentRole, currentNickname]);
 
   // Copy room code
   const handleCopyCode = async () => {

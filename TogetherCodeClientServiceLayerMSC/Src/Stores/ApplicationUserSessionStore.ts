@@ -13,14 +13,14 @@ interface ApplicationUserSessionState {
 }
 
 export const useApplicationUserSessionStore = create<ApplicationUserSessionState>((set) => {
-  // Hydrate from localStorage
+  // Hydrate from per-tab sessionStorage to prevent multi-screen peer collision
   let initialRoomCode: string | null = null;
   let initialRole: WorkspaceRoleType | null = null;
   let initialNickname: string = '';
   let initialSessionToken: string | null = null;
 
   try {
-    const raw = localStorage.getItem(ApplicationLocalStorageCON.USER_SESSION_KEY);
+    const raw = sessionStorage.getItem(ApplicationLocalStorageCON.USER_SESSION_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       initialRoomCode = parsed.roomCode || null;
@@ -42,10 +42,10 @@ export const useApplicationUserSessionStore = create<ApplicationUserSessionState
     setSession: (roomCode: string, role: WorkspaceRoleType, nickname: string, sessionToken: string) => {
       const data = { roomCode, role, nickname, sessionToken };
       try {
-        localStorage.setItem(ApplicationLocalStorageCON.USER_SESSION_KEY, JSON.stringify(data));
-        localStorage.setItem(ApplicationLocalStorageCON.LAST_ROOM_CODE_KEY, roomCode);
-        localStorage.setItem(ApplicationLocalStorageCON.ACTIVE_ROLE_KEY, role);
-        localStorage.setItem(ApplicationLocalStorageCON.SESSION_TOKEN_KEY, sessionToken);
+        sessionStorage.setItem(ApplicationLocalStorageCON.USER_SESSION_KEY, JSON.stringify(data));
+        sessionStorage.setItem(ApplicationLocalStorageCON.LAST_ROOM_CODE_KEY, roomCode);
+        sessionStorage.setItem(ApplicationLocalStorageCON.ACTIVE_ROLE_KEY, role);
+        sessionStorage.setItem(ApplicationLocalStorageCON.SESSION_TOKEN_KEY, sessionToken);
       } catch {
         // ignore storage errors
       }
@@ -60,9 +60,9 @@ export const useApplicationUserSessionStore = create<ApplicationUserSessionState
 
     clearSession: () => {
       try {
-        localStorage.removeItem(ApplicationLocalStorageCON.USER_SESSION_KEY);
-        localStorage.removeItem(ApplicationLocalStorageCON.ACTIVE_ROLE_KEY);
-        localStorage.removeItem(ApplicationLocalStorageCON.SESSION_TOKEN_KEY);
+        sessionStorage.removeItem(ApplicationLocalStorageCON.USER_SESSION_KEY);
+        sessionStorage.removeItem(ApplicationLocalStorageCON.ACTIVE_ROLE_KEY);
+        sessionStorage.removeItem(ApplicationLocalStorageCON.SESSION_TOKEN_KEY);
       } catch {
         // ignore storage errors
       }

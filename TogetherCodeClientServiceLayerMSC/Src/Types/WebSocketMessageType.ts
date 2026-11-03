@@ -1,26 +1,20 @@
 import { WorkspaceRoleType } from './RoomSessionType';
 
-export type WebSocketEventType = 'PRESENCE' | 'CHAT' | 'TYPING' | 'SYSTEM';
-
-export interface WebSocketPresencePayloadType {
-  role: WorkspaceRoleType;
-  nickname: string;
-  status: 'online' | 'offline';
-}
-
-export interface WebSocketChatPayloadType {
-  role: WorkspaceRoleType;
-  nickname: string;
-  message: string;
-  timestamp: string;
-}
-
-export interface WebSocketTypingPayloadType {
-  role: WorkspaceRoleType;
-  isTyping: boolean;
-}
+export type WebSocketEventType =
+  | 'CONNECT'
+  | 'DISCONNECT'
+  | 'PRESENCE'
+  | 'TYPING'
+  | 'CHAT'
+  | 'SCRATCHPAD'
+  | 'ERROR';
 
 export interface WebSocketMessageEnvelopeType {
   type: WebSocketEventType;
-  payload: WebSocketPresencePayloadType | WebSocketChatPayloadType | WebSocketTypingPayloadType | Record<string, unknown>;
+  roomCode?: string;
+  senderName?: string;
+  senderRole?: WorkspaceRoleType;
+  payload?: string;
+  isTyping?: boolean;
+  timestamp?: number;
 }

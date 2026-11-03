@@ -117,6 +117,7 @@ func (s *ContainerService) SpawnContainer(ctx context.Context, roomCode string) 
 			"--host", "0.0.0.0",
 			"--port", CONTAINER_INTERNAL_PORT,
 			"--without-connection-token",
+			"--server-base-path", fmt.Sprintf("/ReverseProxy/Rooms/%s", roomCode),
 		},
 		ExposedPorts: nat.PortSet{
 			exposedPort: struct{}{},
