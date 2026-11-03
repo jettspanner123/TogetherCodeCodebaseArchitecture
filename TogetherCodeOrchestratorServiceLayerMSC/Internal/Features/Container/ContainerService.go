@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
@@ -153,6 +154,14 @@ func (s *ContainerService) SpawnContainer(ctx context.Context, roomCode string) 
 		return nil, fmt.Errorf("failed to start Docker container: %w", err)
 	}
 
+	// Create symlinks inside container to share /home/workspace/shared inside both user workspaces
+	execConfig := types.ExecConfig{
+		Cmd: []string{"sh", "-c", "ln -sf /home/workspace/shared /home/workspace/UserOne/Shared && ln -sf /home/workspace/shared /home/workspace/UserTwo/Shared"},
+	}
+	if execResp, execErr := s.dockerClient.ContainerExecCreate(ctx, resp.ID, execConfig); execErr == nil {
+		_ = s.dockerClient.ContainerExecStart(ctx, execResp.ID, types.ExecStartCheck{})
+	}
+
 	// Poll OpenVSCode readiness probe until HTTP 200 is returned
 	checkURL := fmt.Sprintf("http://127.0.0.1:%d/ReverseProxy/Rooms/%s/", assignedPort, roomCode)
 	probeClient := &http.Client{Timeout: 500 * time.Millisecond}
@@ -249,6 +258,7 @@ func (s *ContainerService) scaffoldStarterFiles(roomWorkspace string) error {
 		filepath.Join(roomWorkspace, "UserTwo", "main.py"):                      STARTER_USER_TWO_PY,
 		filepath.Join(roomWorkspace, "UserTwo", "index.js"):                     STARTER_USER_TWO_JS,
 		filepath.Join(roomWorkspace, "UserTwo", ".vscode", "settings.json"):    STARTER_VSCODE_SETTINGS,
+		filepath.Join(roomWorkspace, "shared", "solution.py"):                  STARTER_SHARED_PY,
 		filepath.Join(roomWorkspace, "shared", "notes.txt"):                     STARTER_SHARED_NOTES,
 	}
 

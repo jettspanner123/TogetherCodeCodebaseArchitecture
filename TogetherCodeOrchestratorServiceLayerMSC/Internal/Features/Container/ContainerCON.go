@@ -19,5 +19,7 @@ const (
 
 	STARTER_SHARED_NOTES = "# Shared Scratchpad & Notes\nUse this file to share algorithms, test cases, or problem statements with your peer.\n"
 
-	STARTER_VSCODE_SETTINGS = "{\n  \"files.autoSave\": \"afterDelay\",\n  \"files.autoSaveDelay\": 500,\n  \"workbench.startupEditor\": \"none\"\n}\n"
+	STARTER_SHARED_PY = "# Shared Collaborative Workspace\n# Files in this directory are shared in real-time between UserOne and UserTwo.\n# Both participants can concurrently read, write, and execute code here.\n\ndef collaborative_solution():\n    print(\"Hello from the Shared Collaborative Space!\")\n\nif __name__ == '__main__':\n    collaborative_solution()\n"
+
+	STARTER_VSCODE_SETTINGS = "{\n  \"files.autoSave\": \"afterDelay\",\n  \"files.autoSaveDelay\": 300,\n  \"workbench.startupEditor\": \"none\"\n}\n"
 )
