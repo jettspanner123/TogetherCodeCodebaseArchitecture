@@ -91,6 +91,33 @@ func (ctrl *ReverseProxyController) HandleProxy(c *gin.Context) {
 	}
 
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, proxyErr error) {
+		// If browser is loading the editor document inside iframe, serve an auto-refreshing loading screen
+		acceptHeader := r.Header.Get("Accept")
+		if strings.Contains(acceptHeader, "text/html") {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			html := `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="2">
+<style>
+  body { background: #0a0a0a; color: #a3a3a3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #262626; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  p { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; margin: 0; }
+</style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>Initializing OpenVSCode environment...</p>
+  <script>setTimeout(function() { window.location.reload(); }, 1500);</script>
+</body>
+</html>`
+			_, _ = w.Write([]byte(html))
+			return
+		}
+
 		http.Error(w, fmt.Sprintf("Proxy connection error: %v", proxyErr), http.StatusBadGateway)
 	}
 

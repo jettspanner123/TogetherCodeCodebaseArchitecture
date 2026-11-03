@@ -150,10 +150,5 @@ func (ctrl *RoomController) HandleExportRoom(c *gin.Context) {
 		ctrl.responseHelper.SendError(c, http.StatusInternalServerError, "EXPORT_FAILED", fmt.Sprintf("Failed to generate zip: %v", err))
 		return
 	}
-
-	// Gracefully stop the container
-	go func() {
-		_ = containerService.StopAndRemoveContainer(c.Request.Context(), code)
-	}()
 }
 

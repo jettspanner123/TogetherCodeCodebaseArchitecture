@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -152,6 +153,26 @@ func (s *ContainerService) SpawnContainer(ctx context.Context, roomCode string) 
 		return nil, fmt.Errorf("failed to start Docker container: %w", err)
 	}
 
+	// Poll OpenVSCode readiness probe until HTTP 200 is returned
+	checkURL := fmt.Sprintf("http://127.0.0.1:%d/ReverseProxy/Rooms/%s/", assignedPort, roomCode)
+	probeClient := &http.Client{Timeout: 500 * time.Millisecond}
+	deadline := time.Now().Add(15 * time.Second)
+	isReady := false
+	for time.Now().Before(deadline) {
+		probeResp, probeErr := probeClient.Get(checkURL)
+		if probeErr == nil {
+			_ = probeResp.Body.Close()
+			if probeResp.StatusCode >= 200 && probeResp.StatusCode < 400 {
+				isReady = true
+				break
+			}
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	if !isReady {
+		log.Printf("[WARN] OpenVSCode Server container %s did not become ready within 15 seconds\n", resp.ID[:12])
+	}
+
 	instance := &ContainerInstance{
 		RoomCode:      roomCode,
 		ContainerID:   resp.ID,
@@ -162,7 +183,7 @@ func (s *ContainerService) SpawnContainer(ctx context.Context, roomCode string) 
 	}
 
 	s.containers[roomCode] = instance
-	log.Printf("[INFO] OpenVSCode Server container %s started for room %s on port %d\n", resp.ID[:12], roomCode, assignedPort)
+	log.Printf("[INFO] OpenVSCode Server container %s started for room %s on port %d (ready=%v)\n", resp.ID[:12], roomCode, assignedPort, isReady)
 
 	return instance, nil
 }
