@@ -1,0 +1,11 @@
+{
+  "name": "@togethercode/orchestrator",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "go run ./CMD/Server/Main.go",
+    "build": "go build -o bin/server.exe ./CMD/Server/Main.go",
+    "lint": "go vet ./...",
+    "clean": "node -e \"const fs = require('fs'); if (fs.existsSync('bin')) fs.rmSync('bin', { recursive: true, force: true });\""
+  }
+}
