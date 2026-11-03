@@ -1,0 +1,31 @@
+{
+  "name": "togethercodecodebasearchitecture",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "TogetherCodeClientServiceLayerMSC",
+    "TogetherCodeOrchestratorServiceLayerMSC"
+  ],
+  "scripts": {
+    "start:dev": "turbo dev",
+    "start:build": "turbo build",
+    "start:lint": "turbo lint",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "clean": "turbo clean",
+    "client:dev": "turbo dev --filter=@togethercode/client",
+    "client:build": "turbo build --filter=@togethercode/client",
+    "client:lint": "turbo lint --filter=@togethercode/client",
+    "client:install": "bun install --cwd TogetherCodeClientServiceLayerMSC",
+    "server:dev": "turbo dev --filter=@togethercode/orchestrator",
+    "server:build": "turbo build --filter=@togethercode/orchestrator",
+    "server:lint": "turbo lint --filter=@togethercode/orchestrator",
+    "orchestrator:dev": "turbo dev --filter=@togethercode/orchestrator",
+    "orchestrator:build": "turbo build --filter=@togethercode/orchestrator",
+    "orchestrator:lint": "turbo lint --filter=@togethercode/orchestrator"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4"
+  }
+}
